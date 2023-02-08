@@ -160,9 +160,9 @@ export default function Home() {
             >
               Todays Items            </Typography>
             <Typography variant="h5" align="center" color="text.secondary" paragraph>
-              Master better not responsible for anything
-              <br />
-              bet bet bet
+              Our current theme is Medival!
+              <hr />
+              
             </Typography>
             <Stack
               sx={{ pt: 4 }}
@@ -170,8 +170,7 @@ export default function Home() {
               spacing={2}
               justifyContent="center"
             >
-              <Button variant="contained">Main call to action</Button>
-              <Button variant="outlined">Secondary action</Button>
+              
             </Stack>
           </Container>
         </Box>
