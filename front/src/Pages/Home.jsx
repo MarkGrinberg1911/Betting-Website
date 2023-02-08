@@ -21,7 +21,11 @@ import { TextField } from '@mui/material';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { io } from 'socket.io-client'
+import { CLIENT_ID } from '../Config/ppconfig'
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
+
 const socket = io("http://localhost:2000")
+
 
 
 
@@ -42,6 +46,43 @@ const theme = createTheme();
 export default function Home() {
   const { productList, username, setProductList } = useContext(UserContext)
   const [bid, setBid] = useState()
+  const [show, setShow] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [ErrorMessage, setErrorMessage] = useState("");
+  const [orderID, setOrderID] = useState(false);
+
+  const createOrder = (data, actions) => {
+    return actions.order.create({
+      purchase_units: [
+        {
+          description: "Sunflower",
+          amount: {
+            currency_code: "USD",
+            value: 20,
+          },
+        },
+      ],
+    }).then((orderID) => {
+      setOrderID(orderID);
+      return orderID;
+    });
+  };
+  const onApprove = (data, actions) => {
+    return actions.order.capture().then(function (details) {
+      const { payer } = details;
+      setSuccess(true);
+    });
+  };
+  const onError = (data, actions) => {
+    setErrorMessage("An Error occured with your payment ");
+  };
+  useEffect(() => {
+    if (success) {
+      alert("Payment successful!!");
+      console.log('Order successful . Your order id is--', orderID);
+    }
+  }, [success]);
+
 
   useEffect(() => {
 
@@ -54,21 +95,21 @@ export default function Home() {
 
   }, [])
   const onRecivedBid = async (bid) => {
-    console.log(bid,"This is bid")
+    console.log(bid, "This is bid")
     const temp = productList
-    console.log("prd list " ,productList)
+    console.log("prd list ", productList)
     const index = temp.findIndex((product) => {
       console.log(product, "this is product")
       console.log(temp, "this is temp")
       return product._id === bid._id
     })
-    console.log(index,"this is index")
+    console.log(index, "this is index")
     temp[index].price = bid.bid;
     temp[index].highbid = bid.username
     setProductList([...temp])
   }
-  
-  
+
+
 
 
 
@@ -85,6 +126,10 @@ export default function Home() {
 
   }
   console.log(productList)
+
+
+
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -160,11 +205,31 @@ export default function Home() {
                         <br />
                         Highest bidder = {card?.highbid}
                       </Typography>
+                      <PayPalScriptProvider options={{ "client-id": CLIENT_ID }}>
+                        <div>
+                          <div className="wrapper">
+                                <Button variant="contained" className='buy-btn' type="submit" onClick={() => setShow(true)}>
+                                  Buy now
+                                </Button>
+                              
+                            
+                          </div>
+                          <br></br>
+                          {show ? (
+                            <PayPalButtons
+                              style={{ layout: "vertical" }}
+                              createOrder={createOrder}
+                              onApprove={onApprove}
+                            />
+                          ) : null}
+                        </div>
+                      </PayPalScriptProvider>
                     </Typography>
                   </CardContent>
                   <CardActions>
                     <Button onClick={() => Bid(card._id, card.price,)} size="small">Bid</Button>
                     <TextField onChange={(e) => setBid(e.target.value)} size="small"></TextField>
+
                   </CardActions>
                 </Card>
               </Grid>
